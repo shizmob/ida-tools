@@ -1,3 +1,5 @@
+import idautils
+import idc
 import json
 from os import path
 
