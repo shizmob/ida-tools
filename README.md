@@ -10,6 +10,11 @@ and automatically rename symbols in any target that uses said library.
 * To export renames: `save_export_renames('~/my-file.json')`;
 * To import renames: `load_export_renames('~/my-file.json')`;
 
+## `auto_rename.py`
+
+Some programs have calls to debug log functions still baked in in production, containing the name of the calling function.
+You can use `auto_rename_all(dict{log_func_name: arg_idx})` to automatically rename functions that do.
+
 # License
 
 ```
