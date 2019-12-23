@@ -38,15 +38,23 @@ class CallAnalyzer(ida_hexrays.ctree_visitor_t):
         if name not in self.targets:
             return 0
 
-        idx = self.targets[name]
-        if idx >= len(args):
-            return 0
+        idxs = self.targets[name]
+        if not isinstance(idxs, tuple):
+            idxs = (idxs,)
 
-        arg = args[idx].obj_ea
-        if not is_str_literal(arg):
-            return 0
+        name = []
+        for idx in idxs:
+            if idx >= len(args):
+                return 0
 
-        self.results.append(get_str_literal(arg))
+            arg = args[idx].obj_ea
+            if not is_str_literal(arg):
+                return 0
+
+            name.append(get_str_literal(arg))
+
+        if name:
+            self.results.append('_'.join(name))
         return 0
 
 
@@ -68,8 +76,9 @@ def auto_rename_all(targets):
             continue
         for ref in idautils.CodeRefsTo(addr, True):
             func = ida_funcs.get_func(ref)
-            refs.add(func.start_ea)
+            if func:
+                refs.add(func.start_ea)
 
     ca = CallAnalyzer(targets)
     for addr in refs:
-        rename_single(ca, addr)
+        auto_rename_single(ca, addr)
