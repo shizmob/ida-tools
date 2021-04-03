@@ -13,7 +13,7 @@ def is_str_literal(addr):
 def get_str_literal(addr):
     type = ida_nalt.get_str_type(addr)
     length = ida_bytes.get_max_strlit_length(addr, type, ida_bytes.ALOPT_IGNHEADS)
-    return ida_bytes.get_strlit_contents(addr, length, type)
+    return ida_bytes.get_strlit_contents(addr, length, type).decode('ascii')
 
 
 class CallAnalyzer(ida_hexrays.ctree_visitor_t):
@@ -58,8 +58,8 @@ class CallAnalyzer(ida_hexrays.ctree_visitor_t):
         return 0
 
 
-def auto_rename_single(ca, addr):
-    cfunc = ida_hexrays.decompile(addr)
+def auto_rename_single(ca, addr, force=False):
+    cfunc = ida_hexrays.decompile(addr, flags=ida_hexrays.DECOMP_NO_CACHE if force else 0)
     if not cfunc:
         return
 
@@ -68,7 +68,7 @@ def auto_rename_single(ca, addr):
     if ca.results:
         ida_name.set_name(addr, ca.results[-1], ida_name.SN_AUTO | ida_name.SN_NOCHECK | ida_name.SN_NOWARN)
 
-def auto_rename_all(targets):
+def auto_rename_all(targets, force=False):
     refs = set()
     for name in targets:
         addr = ida_name.get_name_ea(ida_idaapi.BADADDR, name)
@@ -81,4 +81,4 @@ def auto_rename_all(targets):
 
     ca = CallAnalyzer(targets)
     for addr in refs:
-        auto_rename_single(ca, addr)
+        auto_rename_single(ca, addr, force=force)
