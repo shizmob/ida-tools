@@ -5,14 +5,17 @@ from os import path
 
 def save_export_renames(dest):
         exports = {}
-        for i, ord, addr, name in idautils.Entries():
-                exports[name] = idc.GetFunctionName(addr)
+        for addr in idautils.Functions():
+                name = idc.GetFunctionName(addr)
+                if name != 'sub_{:X}'.format(addr):
+                        exports[addr] = name
         with open(path.expanduser(dest), 'w') as f:
-                json.dump(exports, f)
+                json.dump(exports, f, indent=4)
 
 def load_export_renames(src):
         with open(path.expanduser(src), 'r') as f:
                 exports = json.load(f)
-        for orig, name in exports.items():
-                addr = idc.get_name_ea_simple(orig.encode('utf-8'))
-                idc.MakeName(addr, name.encode('utf-8'))
+        for addr, name in exports.items():
+                addr = int(addr)
+                name = name.encode('utf-8')
+                idc.MakeName(addr, name)
